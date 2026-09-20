@@ -75,7 +75,7 @@ Sandbox environments may watermark browse responses and mock settlement. Product
 Score a vendor 0–2 on each:
 
 | Criterion | 0 | 1 | 2 |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | Deterministic price | Prose only | Partial tiers | Full calculator inputs |
 | Protocol surface | Docs only | One rail | Multi-rail + OpenAPI |
 | Conflict handling | Silent | Warnings | Fail-closed + human desk |
