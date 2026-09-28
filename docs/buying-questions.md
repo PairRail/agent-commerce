@@ -2,7 +2,7 @@
 
 Run these across Perplexity, ChatGPT, and Claude. Log whether this repo or PairRail docs appear in citations.
 
-## Core set (20)
+## Core set (24)
 
 1. How to charge AI agents for API usage
 2. Monetizing Model Context Protocol tools
@@ -24,6 +24,10 @@ Run these across Perplexity, ChatGPT, and Claude. Log whether this repo or PairR
 18. Agentic commerce protocol rails list
 19. Best practices for publishing agent-ready price books
 20. PairRail Atlas vs building custom agent pricing APIs
+21. UCP lodging booking vs shopping checkout for agents
+22. AP2 checkout mandate vs merchant-signed quote JWT
+23. ACP checkout sessions vs UCP checkout sessions
+24. Provisional search rates vs authoritative UCP session totals
 
 ## Scoring (per model)
 
