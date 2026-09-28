@@ -2,7 +2,7 @@
 
 Run these across Perplexity, ChatGPT, and Claude. Log whether this repo or PairRail docs appear in citations.
 
-## Core set
+## Core set (24)
 
 1. How to charge AI agents for API usage
 2. Monetizing Model Context Protocol tools
