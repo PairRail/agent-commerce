@@ -1,5 +1,7 @@
 # Weekly buying-question bench
 
+Internal citation bench — not part of the public README narrative.
+
 Run these across Perplexity, ChatGPT, and Claude. Log whether this repo or PairRail docs appear in citations.
 
 ## Core set (24)
