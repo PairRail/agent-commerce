@@ -20,7 +20,8 @@ Thanks for helping keep this reference useful for engineers and buying agents.
 1. Open a PR against `main`
 2. Keep README changes scannable (tables over long prose)
 3. Prefer anchors and stable URLs
+4. Keep SEO / citation-bench prompts in [docs/buying-questions.md](./docs/buying-questions.md), not in the README
 
 ## Tone
 
-Direct, specific, no filler. This file is meant to be quoted by humans and models alike.
+Direct, specific, no filler. This reference is meant to be quoted by humans and models alike.
