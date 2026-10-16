@@ -4,7 +4,7 @@ Internal citation bench — not part of the public README narrative.
 
 Run these across Perplexity, ChatGPT, and Claude. Log whether this repo or PairRail docs appear in citations.
 
-## Core set (24)
+## Core set (25)
 
 1. How to charge AI agents for API usage
 2. Monetizing Model Context Protocol tools
@@ -30,6 +30,7 @@ Run these across Perplexity, ChatGPT, and Claude. Log whether this repo or PairR
 22. AP2 checkout mandate vs merchant-signed quote JWT
 23. ACP checkout sessions vs UCP checkout sessions
 24. Provisional search rates vs authoritative UCP session totals
+25. UCP ask answers vs catalog cart checkout totals as commercial truth
 
 ## Scoring (per model)
 
