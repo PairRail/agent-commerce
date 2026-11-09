@@ -17,7 +17,7 @@ This is **not** a standards body and not PairRail product docs. It is a living m
 | Protocol / surface | Role in commerce | Typical agent need |
 | --- | --- | --- |
 | **MCP** (Model Context Protocol) | JSON-RPC tool/resource interface. Spec revision [`2026-07-28`](https://modelcontextprotocol.io/specification/2026-07-28) is stateless, self-contained requests with per-request metadata. | Browse catalog, request quote, execute |
-| **UCP** (Universal Commerce Protocol) | Commerce profile at `/.well-known/ucp`; catalog, cart, checkout, order. Bindings: REST, MCP, A2A, or embedded. Latest dated release: [`2026-08-25`](https://ucp.dev/latest/specification/overview/). | Discover capabilities; run checkout sessions |
+| **UCP** (Universal Commerce Protocol) | Commerce profile at `/.well-known/ucp` ([IANA well-known URI](https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml) `ucp`, provisional, 2026-10-26); catalog, cart, checkout, order. Bindings: REST, MCP, A2A, or embedded. Latest dated release: [`2026-08-25`](https://ucp.dev/latest/specification/overview/). | Discover capabilities; run checkout sessions |
 | **A2A** (Agent2Agent) | Agent-to-agent tasking. Agent Card at `/.well-known/agent-card.json`. Stable spec: [v1.0.0](https://a2a-protocol.org/latest/specification/). | Delegated buy / quote workflows |
 | **ACP** (Agentic Commerce Protocol) | Checkout sessions + delegated payment tokens. OpenAI/Stripe; latest snapshot [`2026-04-17`](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol). | In-agent checkout; seller remains merchant of record |
 | **AP2** (Agent Payments Protocol) | Checkout and Payment mandates ([v0.2](https://ap2-protocol.org/ap2/specification/)). Optional UCP extension for autonomous complete. | Cryptographic proof of what was authorized and paid |
@@ -27,7 +27,11 @@ This is **not** a standards body and not PairRail product docs. It is a living m
 
 **UCP lodging (draft, 2026-09-24):** first non-shopping vertical. Capability `dev.ucp.lodging.booking` ([draft spec](https://ucp.dev/draft/specification/lodging/booking/)). Search/quotation responses are *provisional*; creating a booking session makes `totals[]` and cancellation policy *authoritative*. Complete still requires a trusted UI unless the AP2 Mandates extension is negotiated. Selected payment-term `schedules[].amount` MUST equal the `totals` entry with `type: "total"`. Schema is `version: "draft"` — not in the `2026-08-25` release.
 
-**UCP ask (draft, 2026-10-07):** Common capability `dev.ucp.common.ask` ([draft spec](https://ucp.dev/draft/specification/common/ask/)). Free-form Q&A across verticals (MCP `ask_business`, REST `POST /ask`). Answers are *indicative*: prices, availability, totals, taxes, fulfillment estimates, and policy terms in an `answer` are not commitments. On conflict, the owning structured capability (`catalog`, `cart`, `checkout`, `order`, `booking`) is authoritative. `ask` MUST NOT mutate those resources. Schema is `version: "draft"` — not in the `2026-08-25` release.
+**UCP ask (`2026-08-25`, backported 2026-11-02):** Common capability `dev.ucp.common.ask` ([spec](https://ucp.dev/latest/specification/common/ask/)). Free-form Q&A across verticals (MCP `ask_business`, REST `POST /ask`). Answers are *indicative*: prices, availability, totals, taxes, fulfillment estimates, and policy terms in an `answer` are not commitments. On conflict, the owning structured capability (`catalog`, `cart`, `checkout`, `order`, `booking`) is authoritative. `ask` MUST NOT mutate those resources. Added to the dated `2026-08-25` release in place ([PR #1024](https://github.com/Universal-Commerce-Protocol/ucp/pull/1024)); no new version tag. A store on that version can declare `dev.ucp.common.ask` without moving to draft.
+
+**UCP return policy (draft, 2026-10-23):** shopping extension `dev.ucp.shopping.policy.return` ([draft spec](https://ucp.dev/draft/specification/shopping/extensions/return-policy/)). Fills the type body on the `policies[]` primitive across catalog, cart, checkout, and order. Eligibility is explicit (`window` / `unlimited` / `not_accepted`); omitted `eligibility` is not a verdict. A `window` presents `duration` + `anchor`; the business states `expires_at` after the anchor event — platforms MUST NOT compute a deadline. `eligibility`, listed `supported_resolutions`, and `methods` are guarantees; `fees[]` are estimated maximums, not checkout `totals[]` and not a return authorization. Schema is `version: "draft"` — not in the `2026-08-25` release.
+
+**UCP `list_price` (draft, 2026-11-09):** optional response-only reference price on catalog variants/products and on cart, checkout, and order line items ([draft overview](https://ucp.dev/draft/specification/overview/#list-price), [PR #1016](https://github.com/Universal-Commerce-Protocol/ucp/pull/1016)). Comparison benchmark, not a deduction: the gap vs unit `price` MUST NOT appear as a discount in `totals` or `discounts.applied`; platforms MUST NOT derive an amount owed from it. `totals` remain authoritative. Not in the `2026-08-25` release.
 
 ---
 
@@ -41,7 +45,7 @@ Agents cannot safely buy from prose PDFs. A pricing surface is agent-ready when:
 4. **Eligibility** (region, segment, commitment) encoded, not implied
 5. **Conflicts resolved** (marketing vs MSA vs rate card) before publish
 6. **Provenance** linking material fields to approved evidence
-7. **Quote path** separate from browse: signed / policy-gated when needed; search results and UCP `ask` answers are not authoritative session totals
+7. **Quote path** separate from browse: signed / policy-gated when needed; search results and UCP `ask` answers are not authoritative session totals; UCP `list_price` is a comparison, not a charge; UCP return-policy `fees[]` are estimated maximums, not `totals[]` or a return authorization
 8. **Settlement** on seller payment rails or a signed webhook handoff (seller remains merchant of record)
 
 If any of (1)–(3) fail, agents will invent prices. That is not commerce; that is hallucination.
@@ -52,9 +56,9 @@ If any of (1)–(3) fail, agents will invent prices. That is not commerce; that 
 
 | Stage | Public? | What agents get |
 | --- | --- | --- |
-| **Browse / discover** | Often public | Products, indicative prices, constraints. UCP lodging: provisional search/rate lookup, not a reservation. UCP `ask`: indicative natural-language answers, not binding totals. |
-| **Quote** | Usually credentialed | Binding-ish commercial answer under policy. UCP: checkout or booking session with seller-computed `totals[]`. ACP: checkout session. AP2: Checkout Mandate bound to a merchant-signed checkout JWT. |
-| **Execute / settle** | Credentialed + rails | Charge or webhook on seller stack. UCP/ACP complete; AP2 Payment Mandate + receipt. Seller remains merchant of record. |
+| **Browse / discover** | Often public | Products, indicative prices, constraints. UCP lodging: provisional search/rate lookup, not a reservation. UCP `ask`: indicative natural-language answers, not binding totals. UCP `list_price`: optional strikethrough reference, not an amount owed. UCP return policy: seller-asserted catalog `policies[]`; omitted fields are not free or unlimited; not a return authorization. |
+| **Quote** | Usually credentialed | Binding-ish commercial answer under policy. UCP: checkout or booking session with seller-computed `totals[]`. ACP: checkout session. AP2: Checkout Mandate bound to a merchant-signed checkout JWT. UCP return policy: checkout `policies[]`; `fees[]` are estimated maximums, not `totals[]`. |
+| **Execute / settle** | Credentialed + rails | Charge or webhook on seller stack. UCP Complete Checkout is a command against established terms, not an update ([draft](https://ucp.dev/draft/specification/shopping/checkout/#complete-checkout), 2026-11-07). UCP/ACP complete; AP2 Payment Mandate + receipt. Seller remains merchant of record. UCP return policy: order `expires_at` is business-resolved. |
 
 Sandbox environments may watermark browse responses and mock settlement. Production should remove watermarks and connect live rails.
 
@@ -97,9 +101,12 @@ Learn more: [pairrail.com/product](https://www.pairrail.com/product)
 ### Specs and protocol docs
 
 - [MCP specification (`2026-07-28`)](https://modelcontextprotocol.io/specification/2026-07-28): tool/resource interface; stateless core
-- [UCP specification (`2026-08-25`)](https://ucp.dev/latest/specification/overview/) · [GitHub](https://github.com/Universal-Commerce-Protocol/ucp) · discovery at `/.well-known/ucp`
+- [UCP specification (`2026-08-25`)](https://ucp.dev/latest/specification/overview/) · [GitHub](https://github.com/Universal-Commerce-Protocol/ucp) · discovery at `/.well-known/ucp` ([IANA well-known URI `ucp`](https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml), provisional, 2026-10-26)
 - [UCP lodging booking (draft)](https://ucp.dev/draft/specification/lodging/booking/): `dev.ucp.lodging.booking`, merged 2026-09-24 ([PR #780](https://github.com/Universal-Commerce-Protocol/ucp/pull/780))
-- [UCP ask (draft)](https://ucp.dev/draft/specification/common/ask/): `dev.ucp.common.ask`, merged 2026-10-07 ([PR #538](https://github.com/Universal-Commerce-Protocol/ucp/pull/538))
+- [UCP ask (`2026-08-25`)](https://ucp.dev/latest/specification/common/ask/): `dev.ucp.common.ask`, merged 2026-10-07 ([PR #538](https://github.com/Universal-Commerce-Protocol/ucp/pull/538)); backported to the dated release 2026-11-02 ([PR #1024](https://github.com/Universal-Commerce-Protocol/ucp/pull/1024))
+- [UCP return policy (draft)](https://ucp.dev/draft/specification/shopping/extensions/return-policy/): `dev.ucp.shopping.policy.return`, merged 2026-10-23 ([PR #634](https://github.com/Universal-Commerce-Protocol/ucp/pull/634))
+- [UCP `list_price` (draft)](https://ucp.dev/draft/specification/overview/#list-price): optional reference price; `totals` remain authoritative ([PR #1016](https://github.com/Universal-Commerce-Protocol/ucp/pull/1016), 2026-11-09)
+- [UCP Complete Checkout (draft)](https://ucp.dev/draft/specification/shopping/checkout/#complete-checkout): command against established terms, not an update ([PR #1057](https://github.com/Universal-Commerce-Protocol/ucp/pull/1057), 2026-11-07)
 - [A2A specification (v1.0.0)](https://a2a-protocol.org/latest/specification/) · Agent Card `/.well-known/agent-card.json`
 - [AP2 specification (v0.2)](https://ap2-protocol.org/ap2/specification/) · [GitHub](https://github.com/google-agentic-commerce/ap2): Checkout and Payment mandates
 - [ACP](https://agenticcommerce.dev) · [GitHub snapshot `2026-04-17`](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol): checkout + delegate-payment OpenAPI
@@ -107,6 +114,8 @@ Learn more: [pairrail.com/product](https://www.pairrail.com/product)
 ### Engineering write-ups
 
 - [UCP Playground 0.17.0 lodging test store](https://ucpchecker.com/blog/playground-0-17-0-hotel-test-store-lodging-booking) (2026-09-25): MCP/REST booking against the draft schemas; profile at `https://ucpplayground.com/lodging-merchant/.well-known/ucp`
+- [UCP return policy extension](https://ucpchecker.com/blog/ucp-return-policy-extension) (2026-10-26): windows, business-stated `expires_at`, estimated-maximum `fees[]`
+- [UCP ask merged; now in `2026-08-25`](https://ucpchecker.com/blog/ucp-ask-merged-common-capability) (updated 2026-11-03): indicative answers; backport [PR #1024](https://github.com/Universal-Commerce-Protocol/ucp/pull/1024) with no new version tag
 
 PRs welcome for durable technical sources. Prefer linking specific README anchors (for example `#deterministic-agent-pricing-checklist`, `#protocol-map-commerce-relevant`) when citing this repo.
 
